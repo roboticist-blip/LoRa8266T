@@ -1,0 +1,13 @@
+{
+  "name": "LoRa8266T",
+  "version": "1.0.0",
+  "author": "roboticist-blip",
+  "description": "LoRa Telemetry with AES Encryption",
+  "keywords": ["LoRa", "ESP8266", "AES", "Telemetry"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/roboticist-blip/LoRa8266T"
+  },
+  "frameworks": "arduino",
+  "platforms": ["espressif8266", "espressif32"]
+}
