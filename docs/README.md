@@ -9,7 +9,7 @@
 
 **A secure, long-range wireless communication system using ESP8266 and LoRa SX1278 modules with military-grade AES-128 encryption**
 
-[Features](#-features) • [Hardware](#-hardware-requirements) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation)
+[Features](#-features) • [Hardware](#-Hardware) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation)
 
 </div>
 
@@ -48,7 +48,7 @@
 
 ---
 
-## 🛠️ Hardware Requirements
+## 🛠️ Hardware
 
 ### Core Components
 | Component | Specification | Quantity |
