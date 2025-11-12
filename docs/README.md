@@ -1,296 +1,406 @@
-# ESP8266 LoRa Encrypted Communication
+# 📡 LoRa8266T - OTA Wireless Telemetry System
 
-A secure wireless communication system using ESP8266 microcontrollers and LoRa SX1278 modules with AES encryption.
+<div align="center">
 
-## Features
+![LoRa](https://img.shields.io/badge/LoRa-SX1278-blue?style=for-the-badge&logo=wifi&logoColor=white)
+![ESP8266](https://img.shields.io/badge/ESP8266-Compatible-red?style=for-the-badge&logo=espressif&logoColor=white)
+![AES](https://img.shields.io/badge/AES--128-Encrypted-green?style=for-the-badge&logo=security&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
-- **Long Range Communication**: LoRa 433MHz for extended range
-- **AES-128 Encryption**: Secure message transmission with PKCS7 padding
-- **Message Counter**: Built-in message sequencing
-- **RSSI Monitoring**: Signal strength indication
-- **Serial Interface**: Easy debugging and message input
-- **Fallback XOR Encryption**: Lightweight alternative encryption method
+**A secure, long-range wireless communication system using ESP8266 and LoRa SX1278 modules with military-grade AES-128 encryption**
 
-## Hardware Requirements
+[Features](#-features) • [Hardware](#-hardware-requirements) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation)
 
-### Components
-- ESP8266 development board (NodeMCU, Wemos D1 Mini, etc.)
-- LoRa SX1278 module (433MHz)
-- Jumper wires
-- Breadboard (optional)
-
-### Wiring Diagram
-
-# LoRa SX1278 Wiring Charts
-
-## ESP8266 (NodeMCU/Wemos D1 Mini)
-
-| ESP8266 GPIO | SX1278 Pin | Description |
-|--------------|------------|-------------|
-| GPIO15       | NSS/CS     | Chip Select |
-| GPIO16       | RST        | Reset       |
-| GPIO5        | DIO0       | Interrupt   |
-| 3.3V         | VCC        | Power       |
-| GND          | GND        | Ground      |
-| GPIO14       | SCK        | SPI Clock   |
-| GPIO13       | MOSI       | SPI Data Out|
-| GPIO12       | MISO       | SPI Data In |
-
-## ESP32 (DevKit/WROOM)
-
-| ESP32 GPIO | SX1278 Pin | Description |
-|------------|------------|-------------|
-| GPIO5      | NSS/CS     | Chip Select |
-| GPIO14     | RST        | Reset       |
-| GPIO2      | DIO0       | Interrupt   |
-| 3.3V       | VCC        | Power       |
-| GND        | GND        | Ground      |
-| GPIO18     | SCK        | SPI Clock   |
-| GPIO23     | MOSI       | SPI Data Out|
-| GPIO19     | MISO       | SPI Data In |
-
-### ESP32 Alternative Pin Configuration
-
-| ESP32 GPIO | SX1278 Pin | Description |
-|------------|------------|-------------|
-| GPIO15     | NSS/CS     | Chip Select |
-| GPIO4      | RST        | Reset       |
-| GPIO26     | DIO0       | Interrupt   |
-| 3.3V       | VCC        | Power       |
-| GND        | GND        | Ground      |
-| GPIO18     | SCK        | SPI Clock   |
-| GPIO23     | MOSI       | SPI Data Out|
-| GPIO19     | MISO       | SPI Data In |
-
-## Arduino Nano
-
-| Arduino Nano Pin | SX1278 Pin | Description |
-|------------------|------------|-------------|
-| D10              | NSS/CS     | Chip Select |
-| D9               | RST        | Reset       |
-| D2               | DIO0       | Interrupt   |
-| 3.3V             | VCC        | Power       |
-| GND              | GND        | Ground      |
-| D13              | SCK        | SPI Clock   |
-| D11              | MOSI       | SPI Data Out|
-| D12              | MISO       | SPI Data In |
-
-### Arduino Nano Pin Reference
-- D10 = Digital Pin 10
-- D9 = Digital Pin 9
-- D2 = Digital Pin 2 (Interrupt capable)
-- D13 = Digital Pin 13 (Built-in LED pin)
-- D11 = Digital Pin 11
-- D12 = Digital Pin 12
-
-## Arduino Uno
-
-| Arduino Uno Pin | SX1278 Pin | Description |
-|-----------------|------------|-------------|
-| D10             | NSS/CS     | Chip Select |
-| D9              | RST        | Reset       |
-| D2              | DIO0       | Interrupt   |
-| 3.3V            | VCC        | Power       |
-| GND             | GND        | Ground      |
-| D13             | SCK        | SPI Clock   |
-| D11             | MOSI       | SPI Data Out|
-| D12             | MISO       | SPI Data In |
-
-### Arduino Uno Pin Reference
-- D10 = Digital Pin 10 (SS - Slave Select)
-- D9 = Digital Pin 9
-- D2 = Digital Pin 2 (External Interrupt 0)
-- D13 = Digital Pin 13 (SCK + Built-in LED)
-- D11 = Digital Pin 11 (MOSI)
-- D12 = Digital Pin 12 (MISO)
-
-## Code Pin Definitions
-
-### ESP32 Configuration
-```cpp
-// LoRa SX1278 Pin Configuration for ESP32
-#define SS_PIN    5    // GPIO5 - NSS/CS
-#define RST_PIN   14   // GPIO14 - Reset
-#define DIO0_PIN  2    // GPIO2 - DIO0/IRQ
-
-// Alternative ESP32 Configuration
-#define SS_PIN    15   // GPIO15 - NSS/CS
-#define RST_PIN   4    // GPIO4 - Reset
-#define DIO0_PIN  26   // GPIO26 - DIO0/IRQ
-```
-
-### Arduino Nano Configuration
-```cpp
-// LoRa SX1278 Pin Configuration for Arduino Nano
-#define SS_PIN    10   // D10 - NSS/CS
-#define RST_PIN   9    // D9 - Reset
-#define DIO0_PIN  2    // D2 - DIO0/IRQ (Interrupt)
-```
-
-### Arduino Uno Configuration
-```cpp
-// LoRa SX1278 Pin Configuration for Arduino Uno
-#define SS_PIN    10   // D10 - NSS/CS
-#define RST_PIN   9    // D9 - Reset
-#define DIO0_PIN  2    // D2 - DIO0/IRQ (Interrupt)
-```
-
-## Important Notes
-
-### Power Supply Requirements
-- **ESP8266/ESP32**: Native 3.3V operation ✅
-- **Arduino Nano/Uno**: 5V boards - **Use 3.3V output pin for LoRa module**
-- LoRa modules are **3.3V devices** - don't connect to 5V!
-
-### SPI Bus Sharing
-All microcontrollers use hardware SPI:
-- **SCK**: SPI Clock (shared)
-- **MOSI**: Master Out Slave In (shared)
-- **MISO**: Master In Slave Out (shared)
-- **SS/CS**: Slave Select (unique per device)
-
-### Interrupt Pins
-- **ESP8266**: Any GPIO can be interrupt
-- **ESP32**: Any GPIO can be interrupt
-- **Arduino Nano/Uno**: Only pins 2 and 3 support external interrupts
-
-### Pin Change Options
-
-#### For Arduino Nano/Uno - Alternative Pins:
-```cpp
-// Alternative configuration if pins are occupied
-#define SS_PIN    8    // D8 - NSS/CS
-#define RST_PIN   7    // D7 - Reset  
-#define DIO0_PIN  3    // D3 - DIO0/IRQ (Interrupt pin)
-```
-
-#### For ESP32 - Using VSPI:
-```cpp
-// Using VSPI pins (default)
-// SCK = GPIO18, MISO = GPIO19, MOSI = GPIO23
-
-// Using HSPI pins (alternative)
-// SCK = GPIO14, MISO = GPIO12, MOSI = GPIO13
-// Change SS, RST, DIO0 accordingly
-```
-
-## Software Requirements
-
-### Arduino IDE Setup
-1. Install ESP8266 board package in Arduino IDE
-2. Install required libraries:
-   - `LoRa` by Sandeep Mistry
-   - `AESLib` by DavyLandman
-
-### Library Installation
-```
-Arduino IDE → Sketch → Include Library → Manage Libraries
-Search and install:
-- LoRa
-- AESLib
-```
-
-## Configuration
-
-### LoRa Settings
-```cpp
-#define LORA_FREQUENCY    433E6  // 433 MHz
-#define LORA_SYNC_WORD    0x12
-#define LORA_SPREADING_FACTOR 7
-#define LORA_BANDWIDTH    125E3
-#define LORA_TX_POWER     17
-```
-
-### Security Configuration
-⚠️ **IMPORTANT**: Change the default AES key before deployment!
-
-```cpp
-uint8_t aes_key[AES_KEY_SIZE] = {
-  0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
-  0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
-};
-```
-
-## Usage
-
-1. **Upload the code** to two or more ESP8266 devices
-2. **Open Serial Monitor** at 9600 baud rate
-3. **Type messages** in the serial monitor and press Enter
-4. **Messages are automatically encrypted** and transmitted via LoRa
-5. **Received messages are decrypted** and displayed with RSSI values
-
-### Example Output
-```
-ESP8266 LoRa Interface with AES Encryption Starting...
-LoRa Ready with AES Encryption!
-TX: 0:Hello World (Encrypted)
-RX: 1:Hello back! (RSSI: -45)
-```
-
-## Security Features
-
-- **AES-128 CBC Encryption**: Industry-standard encryption
-- **PKCS7 Padding**: Proper block cipher padding
-- **Message Counter**: Prevents replay attacks
-- **IV Generation**: Initialization vector for encryption
-- **XOR Fallback**: Lightweight encryption option
-
-## Customization
-
-### Changing Frequency
-Modify `LORA_FREQUENCY` to match your regional ISM band:
-- 433MHz (Europe, Asia)
-- 915MHz (North America)
-- 868MHz (Europe)
-
-### Adjusting Range vs Speed
-- **Longer Range**: Increase spreading factor (7-12)
-- **Faster Speed**: Decrease spreading factor, increase bandwidth
-
-## Troubleshooting
-
-### Common Issues
-1. **LoRa init failed**: Check wiring connections
-2. **No messages received**: Verify frequency and sync word match
-3. **Decryption failed**: Ensure both devices use the same AES key
-4. **Poor range**: Check antenna connection and TX power settings
-
-### Debug Tips
-- Monitor serial output for TX/RX confirmations
-- Check RSSI values for signal quality
-- Verify LoRa module power supply (3.3V, sufficient current)
-
-## Performance
-
-- **Range**: Up to 2km line-of-sight (depends on environment)
-- **Data Rate**: ~5.5kbps at SF7
-- **Power Consumption**: ~100mA during transmission
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-### Development Setup
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- LoRa library by Sandeep Mistry
-- AESLib by DavyLandman
-- ESP8266 Community
-
-## Disclaimer
-
-This project is for educational and experimental purposes. Ensure compliance with local radio regulations when using LoRa frequencies. The default AES key is for demonstration only - always use your own secure key in production.
+</div>
 
 ---
 
-**⭐ Star this repository if you find it useful!**
+## 🌟 Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🚀 **Performance**
+- **Long Range Communication**: Up to 2km line-of-sight using LoRa 433MHz
+- **Fast Data Rate**: ~5.5kbps at SF7
+- **Low Latency**: Real-time message transmission
+- **Signal Monitoring**: Built-in RSSI feedback
+
+</td>
+<td width="50%">
+
+### 🔒 **Security**
+- **AES-128 CBC Encryption**: Military-grade security
+- **PKCS7 Padding**: Industry-standard block cipher padding
+- **Message Counter**: Replay attack prevention
+- **XOR Fallback**: Lightweight encryption alternative
+
+</td>
+</tr>
+</table>
+
+### ✨ Additional Capabilities
+- 📱 **Serial Interface**: Easy debugging and message input via UART
+- 🔌 **Multi-MCU Support**: ESP8266, ESP32, Arduino Nano/Uno compatible
+- ⚡ **OTA Ready**: Over-The-Air update capability
+- 🎯 **Plug & Play**: Simple serial communication for other MCUs
+
+---
+
+## 🛠️ Hardware Requirements
+
+### Core Components
+| Component | Specification | Quantity |
+|-----------|--------------|----------|
+| ESP8266 | NodeMCU / Wemos D1 Mini | 2+ |
+| LoRa SX1278 | 433MHz Module | 2+ |
+| Jumper Wires | Male-to-Female | 8 per unit |
+| Power Supply | 3.3V (min 500mA) | 1 per unit |
+
+### Optional Components
+- Breadboard for prototyping
+- External antenna for extended range
+- Level shifter (for 5V Arduino boards)
+
+---
+
+## 🔌 Wiring Diagram
+
+### ESP8266 Configuration
+
+| ESP8266 GPIO | SX1278 Pin | Description |
+|--------------|------------|-------------|
+| GPIO15 | NSS/CS | Chip Select |
+| GPIO16 | RST | Reset |
+| GPIO5 | DIO0 | Interrupt |
+| GPIO14 | SCK | SPI Clock |
+| GPIO13 | MOSI | SPI Data Out |
+| GPIO12 | MISO | SPI Data In |
+| 3.3V | VCC | Power Supply |
+| GND | GND | Ground |
+
+### Alternative MCU Configurations
+
+<details>
+<summary><b>ESP32 Configuration</b></summary>
+
+#### Default Configuration
+| ESP32 GPIO | SX1278 Pin | Description |
+|------------|------------|-------------|
+| GPIO5 | NSS/CS | Chip Select |
+| GPIO14 | RST | Reset |
+| GPIO2 | DIO0 | Interrupt |
+| GPIO18 | SCK | SPI Clock |
+| GPIO23 | MOSI | SPI Data Out |
+| GPIO19 | MISO | SPI Data In |
+| 3.3V | VCC | Power |
+| GND | GND | Ground |
+
+#### Alternative Configuration
+| ESP32 GPIO | SX1278 Pin |
+|------------|------------|
+| GPIO15 | NSS/CS |
+| GPIO4 | RST |
+| GPIO26 | DIO0 |
+
+</details>
+
+<details>
+<summary><b>Arduino Nano/Uno Configuration</b></summary>
+
+| Arduino Pin | SX1278 Pin | Description |
+|-------------|------------|-------------|
+| D10 | NSS/CS | Chip Select |
+| D9 | RST | Reset |
+| D2 | DIO0 | Interrupt (INT0) |
+| D13 | SCK | SPI Clock |
+| D11 | MOSI | SPI Data Out |
+| D12 | MISO | SPI Data In |
+| 3.3V | VCC | Power |
+| GND | GND | Ground |
+
+⚠️ **Important**: Arduino boards are 5V devices. Use the 3.3V output pin for LoRa power supply!
+
+</details>
+
+---
+
+## 📥 Installation
+
+### 1️⃣ Arduino IDE Setup
+
+```bash
+# Add ESP8266 Board Package
+# File → Preferences → Additional Board Manager URLs:
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+```
+
+### 2️⃣ Install Required Libraries
+
+Navigate to **Sketch → Include Library → Manage Libraries** and install:
+
+- **LoRa** by Sandeep Mistry
+- **AESLib** by DavyLandman
+
+### 3️⃣ Clone Repository
+
+```bash
+git clone https://github.com/roboticist-blip/LoRa8266T.git
+cd LoRa8266T
+```
+
+### 4️⃣ Upload Firmware
+
+1. Open `LoRa8266T.ino` in Arduino IDE
+2. Select your board: **Tools → Board → ESP8266 Boards → NodeMCU 1.0**
+3. Select COM port: **Tools → Port**
+4. Click **Upload** ⬆️
+
+---
+
+## 🚀 Usage
+
+### Quick Start
+
+1. **Power up** both ESP8266 + LoRa modules
+2. **Open Serial Monitor** at 9600 baud
+3. **Type message** and press Enter
+4. **Watch magic happen** ✨
+
+### Example Output
+
+```
+ESP8266 LoRa Interface with AES Encryption Starting...
+LoRa Ready with AES Encryption!
+
+TX: 0:Hello World (Encrypted)
+RX: 1:Hello back! (RSSI: -45)
+TX: 2:Testing secure comms
+RX: 3:Roger that! (RSSI: -52)
+```
+
+### Message Format
+- **TX**: Transmitted message with counter
+- **RX**: Received message with RSSI (signal strength)
+- **RSSI Values**: -30 to -60 (Excellent), -60 to -90 (Good), < -90 (Poor)
+
+---
+
+## ⚙️ Configuration
+
+### LoRa Parameters
+
+```cpp
+#define LORA_FREQUENCY 433E6          // 433 MHz (Europe/Asia)
+#define LORA_SYNC_WORD 0x12           // Network ID
+#define LORA_SPREADING_FACTOR 7       // 7-12 (higher = longer range)
+#define LORA_BANDWIDTH 125E3          // 125 kHz
+#define LORA_TX_POWER 17              // dBm (2-20)
+```
+
+### Regional Frequency Bands
+
+| Region | Frequency | Legal Status |
+|--------|-----------|--------------|
+| Europe/Asia | 433 MHz | ISM Band ✅ |
+| North America | 915 MHz | ISM Band ✅ |
+| Europe | 868 MHz | ISM Band ✅ |
+
+### AES Encryption Key
+
+```cpp
+uint8_t aes_key[AES_KEY_SIZE] = {
+    0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+    0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
+};
+```
+
+⚠️ **Security Warning**: Change the default key for production use!
+
+### Performance Tuning
+
+**For Maximum Range:**
+```cpp
+#define LORA_SPREADING_FACTOR 12      // Slower but longer range
+#define LORA_TX_POWER 20              // Maximum power
+```
+
+**For Maximum Speed:**
+```cpp
+#define LORA_SPREADING_FACTOR 7       // Faster transmission
+#define LORA_BANDWIDTH 250E3          // Wider bandwidth
+```
+
+---
+
+## 🔒 Security Features
+
+### Encryption Pipeline
+
+```
+Plaintext → AES-128 CBC → PKCS7 Padding → LoRa Transmission
+```
+
+### Security Components
+
+1. **AES-128 CBC**: Symmetric encryption with 128-bit key
+2. **Initialization Vector (IV)**: Randomized per message
+3. **Message Counter**: Monotonically increasing sequence
+4. **PKCS7 Padding**: Ensures block alignment
+
+### Attack Mitigation
+
+✅ **Replay Attack**: Prevented by message counter  
+✅ **Man-in-the-Middle**: Protected by AES encryption  
+✅ **Eavesdropping**: Encrypted transmission  
+⚠️ **Key Distribution**: Manual key sharing required
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| ❌ LoRa init failed | • Check wiring connections<br>• Verify 3.3V power supply<br>• Test with multimeter |
+| 📡 No messages received | • Match frequency on both devices<br>• Verify sync word (0x12)<br>• Check antenna connection |
+| 🔓 Decryption failed | • Ensure identical AES keys<br>• Verify both devices running same code |
+| 📉 Poor range | • Adjust antenna position<br>• Increase TX power<br>• Use higher spreading factor |
+| 💡 ESP8266 won't boot | • Check GPIO15 not floating<br>• Verify GPIO0/GPIO2 states<br>• Test power supply |
+
+### Debug Mode
+
+Enable detailed logging:
+```cpp
+#define DEBUG_MODE 1
+```
+
+---
+
+## 📊 Technical Specifications
+
+| Parameter | Value |
+|-----------|-------|
+| **Range** | Up to 2km (line-of-sight) |
+| **Data Rate** | ~5.5 kbps @ SF7 |
+| **Frequency** | 433 MHz (configurable) |
+| **Encryption** | AES-128 CBC |
+| **Power Consumption** | ~100mA TX, ~15mA RX |
+| **Operating Voltage** | 3.3V |
+| **Interface** | UART (9600 baud) |
+
+---
+
+## 📚 Documentation
+
+### File Structure
+```
+LoRa8266T/
+├── LoRa8266T.ino          # Main firmware
+├── docs/
+│   ├── wiring_diagram.png # Connection guide
+│   └── LICENSE            # MIT License
+└── README.md              # This file
+```
+
+### Pin Mapping Reference
+
+<details>
+<summary><b>View Complete Pin Configurations</b></summary>
+
+#### ESP8266 Code Example
+```cpp
+#define SS_PIN 15      // GPIO15
+#define RST_PIN 16     // GPIO16
+#define DIO0_PIN 5     // GPIO5
+```
+
+#### Alternative ESP8266 Pins
+```cpp
+#define SS_PIN 4       // GPIO4 (D2)
+#define RST_PIN 0      // GPIO0 (D3)
+#define DIO0_PIN 2     // GPIO2 (D4)
+```
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. 🍴 **Fork** the repository
+2. 🌿 **Create** your feature branch: `git checkout -b feature/amazing-feature`
+3. 💾 **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. 📤 **Push** to the branch: `git push origin feature/amazing-feature`
+5. 🎉 **Open** a Pull Request
+
+### Development Guidelines
+
+- Follow existing code style
+- Test on real hardware before submitting
+- Update documentation for new features
+- Add comments for complex logic
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](docs/LICENSE) file for details.
+
+### What This Means
+✅ Commercial use  
+✅ Modification  
+✅ Distribution  
+✅ Private use  
+
+---
+
+## 🙏 Acknowledgments
+
+- **Sandeep Mistry** - [LoRa Library](https://github.com/sandeepmistry/arduino-LoRa)
+- **DavyLandman** - [AESLib](https://github.com/DavyLandman/AESLib)
+- **ESP8266 Community** - Hardware support and documentation
+
+---
+
+## ⚖️ Legal Disclaimer
+
+⚠️ **Important Notices:**
+
+- This project is for **educational and experimental purposes**
+- Ensure compliance with **local radio regulations** when using LoRa frequencies
+- The default AES key is for **demonstration only**
+- Always use your **own secure key** in production
+- Respect ISM band regulations in your region
+- Maximum transmission power may be legally restricted
+
+---
+
+## 🌐 Connect & Support
+
+<div align="center">
+
+### ⭐ Star this repository if you find it useful!
+
+[![GitHub Stars](https://img.shields.io/github/stars/roboticist-blip/LoRa8266T?style=social)](https://github.com/roboticist-blip/LoRa8266T/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/roboticist-blip/LoRa8266T?style=social)](https://github.com/roboticist-blip/LoRa8266T/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/roboticist-blip/LoRa8266T)](https://github.com/roboticist-blip/LoRa8266T/issues)
+
+**Questions?** Open an [issue](https://github.com/roboticist-blip/LoRa8266T/issues)  
+**Ideas?** Start a [discussion](https://github.com/roboticist-blip/LoRa8266T/discussions)
+
+</div>
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the IoT Community**
+
+*Built with ESP8266 • Secured with AES-128 • Powered by LoRa*
+
+</div>
