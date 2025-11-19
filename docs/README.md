@@ -71,12 +71,12 @@
 
 | ESP8266 GPIO | SX1278 Pin | Description |
 |--------------|------------|-------------|
-| GPIO15 | NSS/CS | Chip Select |
-| GPIO16 | RST | Reset |
-| GPIO5 | DIO0 | Interrupt |
-| GPIO14 | SCK | SPI Clock |
-| GPIO13 | MOSI | SPI Data Out |
-| GPIO12 | MISO | SPI Data In |
+| GPIO15(D8) | NSS/CS | Chip Select |
+| GPIO16(D0) | RST | Reset |
+| GPIO5(D1) | DIO0 | Interrupt |
+| GPIO14(D5) | SCK | SPI Clock |
+| GPIO13(D7) | MOSI | SPI Data Out |
+| GPIO12(D6) | MISO | SPI Data In |
 | 3.3V | VCC | Power Supply |
 | GND | GND | Ground |
 
